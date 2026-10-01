@@ -1,0 +1,18 @@
+# Render.com blueprint — deploys Sparky Small as a free web service.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: sparky-small
+    runtime: python
+    plan: free
+    # No build step needed — pure standard library, zero dependencies.
+    buildCommand: ""
+    startCommand: python3 sparky_web.py
+    envVars:
+      # You set this one in the Render dashboard (Dashboard > Environment).
+      # Never paste your real key into this file or GitHub.
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: SPARKY_MODEL
+        value: meta-llama/llama-3.3-70b-instruct
+      # Render assigns PORT automatically; sparky_web.py already reads it.
