@@ -227,6 +227,13 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path in ("/", "/index.html"):
             self._send(200, PAGE)
+        elif self.path == "/scenario":
+            scenario_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scenario.html")
+            try:
+                with open(scenario_path, "r", encoding="utf-8") as f:
+                    self._send(200, f.read())
+            except FileNotFoundError:
+                self._send(404, "scenario.html not found", "text/plain")
         else:
             self._send(404, "Not found", "text/plain")
 
