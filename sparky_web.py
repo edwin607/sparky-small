@@ -13,6 +13,8 @@ Then open http://localhost:8000 in your browser.
 
 import json
 import os
+import random
+import re
 import sys
 import urllib.request
 import urllib.error
@@ -84,7 +86,23 @@ You never:
 - Treat the learner or their community as a problem to be solved.
 - Claim to know their community better than they do.
 - Let pressure move a hand-back line.
-- Speak as the owner of a course you can't verify Cambio owns."""
+- Speak as the owner of a course you can't verify Cambio owns.
+
+INTERACTIVE MOMENTS
+Long text explanations lose learners. When you are about to teach a concept, define terms, compare options, or check understanding, offer an interactive instead of writing it all out. Aim to offer one on roughly half of your teaching replies.
+
+IMPORTANT: when you use a tag, the interactive shows the details FOR you, so your text must be 1-2 short sentences max - just a hook like "Let's look at this a different way." or "Try this before I explain." Do NOT explain the concept in text AND show the interactive. That is the whole point: the interactive replaces the long explanation.
+
+Example of a good tagged reply:
+"Good question. Instead of a wall of text, play with these cards first, then tell me what you think the term means.
+[INTERACTIVE: flipcards]"
+
+To offer one, end your reply with exactly one tag on its own line:
+[INTERACTIVE: flipcards] - 2-4 term/definition cards the learner flips over
+[INTERACTIVE: toggle] - compare two choices side by side and what each one costs
+[INTERACTIVE: diagram] - a simple flow: a choice, what was picked, what was given up
+[INTERACTIVE: quickcheck] - one multiple-choice question with 3 options that tests the idea just taught
+Pick whichever type fits the moment. Never use more than one tag per reply. The tag is invisible to the learner - never mention it. If no interactive fits the moment, use no tag."""
 
 PAGE = """<!DOCTYPE html>
 <html lang="en">
@@ -194,6 +212,74 @@ form.addEventListener('submit', async (e) => {
 """
 
 
+INTERACTIVE_RATE = 0.5  # fraction of teaching replies that get an interactive
+
+# Words that mark a reply as a teaching moment (vs. a question or hand-back).
+TEACHING_SIGNALS = (" is ", " are ", " means ", " refers to", " think of it",
+                    " for example", " in other words")
+
+# Fallback content, used when the model offers an interactive and the coin flip says yes.
+# Keyed loosely by topic words found in the conversation.
+INTERACTIVE_BANK = [
+    {
+        "type": "flipcards",
+        "cards": [
+            {"front": "Opportunity cost", "back": "The value of the next best thing you gave up when you made a choice."},
+            {"front": "Next best alternative", "back": "The single best option you did NOT pick. Not every option - just the best one."},
+            {"front": "Trade-off", "back": "What you accept losing in order to get something else. Every choice has one."},
+        ],
+    },
+    {
+        "type": "toggle",
+        "options": [
+            {"label": "Beach Saturday", "text": "You spend Saturday at the beach with friends.",
+             "cost": "the pay from a work shift, or progress on studying"},
+            {"label": "Study Saturday", "text": "You spend Saturday studying for a test.",
+             "cost": "a day of rest and time with friends at the beach"},
+        ],
+    },
+    {
+        "type": "diagram",
+        "choice": "You have one free Saturday",
+        "picked": "You go to the beach",
+        "gave_up": "a paid work shift (your next best option)",
+    },
+    {
+        "type": "quickcheck",
+        "question": "You skip a $15 movie to work a shift that pays $60. What is the opportunity cost of working?",
+        "options": ["$45", "The movie experience you gave up", "$60"],
+        "answer": 1,
+        "feedback": "Right - opportunity cost is the value of what you gave up (the movie), not a dollar amount.",
+    },
+]
+
+
+def _trim_to_hook(text: str, max_sentences: int = 2) -> str:
+    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+    return " ".join(sentences[:max_sentences]).strip()
+
+
+def split_interactive(reply: str, messages: list):
+    """Attach an interactive to about half of teaching replies.
+    Two paths: the model tags its reply with [INTERACTIVE: type], or the reply
+    is a long teaching moment and the server rolls the dice itself.
+    Returns (clean_reply, interactive_or_None). The tag never reaches the learner."""
+    m = re.search(r"\[INTERACTIVE:\s*(\w+)\]", reply)
+    if m:
+        clean = re.sub(r"\s*\[INTERACTIVE:\s*\w+\]\s*", "", reply).strip()
+        if random.random() > INTERACTIVE_RATE:
+            return clean, None
+        wanted = m.group(1).lower()
+        item = next((i for i in INTERACTIVE_BANK if i["type"] == wanted), None) or random.choice(INTERACTIVE_BANK)
+        return _trim_to_hook(clean) or clean, item
+
+    # Server-side enforcement: long teaching reply with no tag -> 50% chance of an interactive.
+    is_teaching = any(sig in reply.lower() for sig in TEACHING_SIGNALS)
+    if is_teaching and len(reply) > 200 and random.random() <= INTERACTIVE_RATE:
+        return _trim_to_hook(reply), random.choice(INTERACTIVE_BANK)
+    return reply, None
+
+
 def call_llm(messages: list) -> str:
     payload = {
         "model": MODEL,
@@ -247,8 +333,10 @@ class Handler(BaseHTTPRequestHandler):
             messages = body.get("messages", [])
             if not isinstance(messages, list) or not messages:
                 raise ValueError("No messages provided")
-            reply = call_llm(messages)
-            self._send(200, json.dumps({"reply": reply}), "application/json")
+            raw_reply = call_llm(messages)
+            reply, interactive = split_interactive(raw_reply, messages)
+            self._send(200, json.dumps({"reply": reply, "interactive": interactive}),
+                       "application/json")
         except urllib.error.HTTPError as e:
             detail = e.read().decode("utf-8", "replace")[:300]
             self._send(e.code, json.dumps({"error": f"OpenRouter error {e.code}: {detail}"}),

@@ -12,15 +12,13 @@
          background: #fff; border: 1px solid #e4e4e7; border-radius: 16px;
          box-shadow: 0 4px 24px rgba(0,0,0,.06); overflow: hidden; height: calc(100vh - 48px); }
 
-  /* Course chrome */
-  .course-bar { background: #18181b; color: #fafafa; padding: 12px 20px;
-                display: flex; align-items: center; justify-content: space-between; }
+  .course-bar { background: #18181b; color: #fafafa; padding: 12px 20px; }
+  .course-bar .top { display: flex; align-items: center; justify-content: space-between; }
   .course-bar .crumb { font-size: 12px; color: #a1a1aa; }
   .course-bar .crumb b { color: #fafafa; font-weight: 600; }
-  .progress { height: 4px; background: #3f3f46; border-radius: 2px; margin: 8px 0 0; }
+  .progress { height: 4px; background: #3f3f46; border-radius: 2px; margin-top: 8px; }
   .progress i { display: block; height: 100%; width: 33%; background: #fafafa; border-radius: 2px; }
 
-  /* Lesson card */
   .lesson { padding: 16px 20px; border-bottom: 1px solid #e4e4e7; background: #fafafa; }
   .lesson h2 { font-size: 15px; margin-bottom: 6px; }
   .lesson p { font-size: 13px; color: #52525b; line-height: 1.5; }
@@ -36,14 +34,65 @@
   header button:hover { background: #f4f4f5; }
 
   #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-  .msg { max-width: 82%; padding: 10px 14px; border-radius: 14px; line-height: 1.45;
+  .msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; line-height: 1.45;
          font-size: 15px; white-space: pre-wrap; }
   .user { align-self: flex-end; background: #18181b; color: #fafafa; border-bottom-right-radius: 4px; }
   .bot { align-self: flex-start; background: #f4f4f5; color: #18181b;
          border: 1px solid #e4e4e7; border-bottom-left-radius: 4px; }
   .bot.thinking { color: #a1a1aa; font-style: italic; }
 
-  /* Suggested learner moves */
+  /* ---------- interactive widgets ---------- */
+  .widget { align-self: flex-start; max-width: 85%; width: 320px; background: #fff;
+            border: 1px solid #d4d4d8; border-radius: 14px; padding: 14px;
+            font-size: 14px; }
+  .widget .w-title { font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+                     color: #71717a; margin-bottom: 10px; }
+
+  /* flip cards */
+  .flipcard { perspective: 800px; height: 120px; cursor: pointer; margin-bottom: 8px; }
+  .flipcard .inner { position: relative; width: 100%; height: 100%;
+                     transition: transform .5s; transform-style: preserve-3d; }
+  .flipcard.flipped .inner { transform: rotateY(180deg); }
+  .flipcard .face { position: absolute; inset: 0; display: flex; align-items: center;
+                    justify-content: center; text-align: center; padding: 12px;
+                    border-radius: 10px; backface-visibility: hidden; line-height: 1.4; }
+  .flipcard .front { background: #18181b; color: #fafafa; }
+  .flipcard .back { background: #f4f4f5; color: #18181b; border: 1px solid #d4d4d8;
+                    transform: rotateY(180deg); }
+  .flip-hint { font-size: 11px; color: #a1a1aa; text-align: center; }
+
+  /* toggle compare */
+  .toggle-bar { display: flex; background: #f4f4f5; border-radius: 10px; padding: 3px; margin-bottom: 10px; }
+  .toggle-bar button { flex: 1; padding: 8px; font-size: 13px; border: none; border-radius: 8px;
+                       background: transparent; cursor: pointer; color: #52525b; }
+  .toggle-bar button.active { background: #18181b; color: #fafafa; }
+  .toggle-pane { padding: 10px 12px; background: #fafafa; border: 1px solid #e4e4e7;
+                 border-radius: 10px; line-height: 1.5; }
+  .toggle-pane .cost { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #d4d4d8;
+                       font-size: 13px; color: #52525b; }
+  .toggle-pane .cost b { color: #18181b; }
+
+  /* diagram */
+  .diagram { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .d-node { padding: 8px 14px; border-radius: 10px; font-size: 13px; text-align: center;
+            max-width: 260px; line-height: 1.35; }
+  .d-choice { background: #18181b; color: #fafafa; }
+  .d-picked { background: #e4e4e7; color: #18181b; }
+  .d-gaveup { background: #fff; border: 1px dashed #a1a1aa; color: #52525b; }
+  .d-arrow { color: #a1a1aa; font-size: 16px; line-height: 1; padding: 3px 0; }
+  .d-label { font-size: 11px; color: #71717a; margin-top: 8px; text-align: center; }
+
+  /* quick check */
+  .qc-q { font-weight: 600; margin-bottom: 10px; line-height: 1.4; }
+  .qc-opt { display: block; width: 100%; text-align: left; padding: 9px 12px; margin-bottom: 6px;
+            font-size: 14px; border: 1px solid #d4d4d8; border-radius: 10px;
+            background: #fff; cursor: pointer; }
+  .qc-opt:hover { background: #f4f4f5; }
+  .qc-opt.correct { background: #ecfdf5; border-color: #10b981; color: #065f46; }
+  .qc-opt.wrong { background: #fef2f2; border-color: #ef4444; color: #991b1b; }
+  .qc-fb { font-size: 13px; line-height: 1.45; margin-top: 6px; color: #3f3f46; display: none; }
+  /* ---------- /widgets ---------- */
+
   .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 14px 0; }
   .chip { font-size: 12px; padding: 6px 12px; border: 1px solid #d4d4d8; background: #fff;
           border-radius: 999px; cursor: pointer; color: #3f3f46; }
@@ -62,8 +111,10 @@
 <div class="app">
 
   <div class="course-bar">
-    <div class="crumb"><b>Everyday Economics</b> &rsaquo; Module 2 &rsaquo; Lesson 2.3</div>
-    <div class="crumb">Demo scenario</div>
+    <div class="top">
+      <div class="crumb"><b>Everyday Economics</b> &rsaquo; Module 2 &rsaquo; Lesson 2.3</div>
+      <div class="crumb">Demo scenario</div>
+    </div>
     <div class="progress"><i></i></div>
   </div>
 
@@ -123,6 +174,103 @@ function addMsg(text, cls) {
   return d;
 }
 
+/* ---------- widget renderers ---------- */
+function addWidgetShell(title) {
+  const w = document.createElement('div');
+  w.className = 'widget';
+  w.innerHTML = '<div class="w-title">' + title + '</div>';
+  chat.appendChild(w);
+  chat.scrollTop = chat.scrollHeight;
+  return w;
+}
+
+function renderFlipcards(w, cards) {
+  cards.forEach(c => {
+    const f = document.createElement('div');
+    f.className = 'flipcard';
+    f.innerHTML = '<div class="inner"><div class="face front">' + c.front +
+                  '</div><div class="face back">' + c.back + '</div></div>';
+    f.onclick = () => f.classList.toggle('flipped');
+    w.appendChild(f);
+  });
+  const hint = document.createElement('div');
+  hint.className = 'flip-hint';
+  hint.textContent = 'Tap a card to flip it';
+  w.appendChild(hint);
+}
+
+function renderToggle(w, data) {
+  const bar = document.createElement('div');
+  bar.className = 'toggle-bar';
+  const pane = document.createElement('div');
+  pane.className = 'toggle-pane';
+  function show(i) {
+    bar.querySelectorAll('button').forEach((b, j) => b.classList.toggle('active', i === j));
+    const o = data.options[i];
+    pane.innerHTML = o.text + '<div class="cost"><b>What you give up:</b> ' + o.cost + '</div>';
+  }
+  data.options.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.textContent = o.label;
+    b.onclick = () => show(i);
+    bar.appendChild(b);
+  });
+  w.appendChild(bar);
+  w.appendChild(pane);
+  show(0);
+}
+
+function renderDiagram(w, d) {
+  const wrap = document.createElement('div');
+  wrap.className = 'diagram';
+  wrap.innerHTML =
+    '<div class="d-node d-choice">' + d.choice + '</div>' +
+    '<div class="d-arrow">&#8595;</div>' +
+    '<div class="d-node d-picked">' + d.picked + '</div>' +
+    '<div class="d-arrow">&#8595;</div>' +
+    '<div class="d-node d-gaveup">Gave up: ' + d.gave_up + '</div>';
+  w.appendChild(wrap);
+  const lbl = document.createElement('div');
+  lbl.className = 'd-label';
+  lbl.textContent = 'What you gave up = the opportunity cost';
+  w.appendChild(lbl);
+}
+
+function renderQuickcheck(w, q) {
+  const qEl = document.createElement('div');
+  qEl.className = 'qc-q';
+  qEl.textContent = q.question;
+  w.appendChild(qEl);
+  const fb = document.createElement('div');
+  fb.className = 'qc-fb';
+  q.options.forEach((o, i) => {
+    const b = document.createElement('button');
+    b.className = 'qc-opt';
+    b.textContent = o;
+    b.onclick = () => {
+      w.querySelectorAll('.qc-opt').forEach(x => x.disabled = true);
+      b.classList.add(i === q.answer ? 'correct' : 'wrong');
+      if (i !== q.answer) w.querySelectorAll('.qc-opt')[q.answer].classList.add('correct');
+      fb.textContent = q.feedback;
+      fb.style.display = 'block';
+      chat.scrollTop = chat.scrollHeight;
+    };
+    w.appendChild(b);
+  });
+  w.appendChild(fb);
+}
+
+function renderWidget(data) {
+  const titles = { flipcards: 'Key ideas', toggle: 'Try it: two choices',
+                   diagram: 'See how it works', quickcheck: 'Quick check' };
+  const w = addWidgetShell(titles[data.type] || 'Interactive');
+  if (data.type === 'flipcards') renderFlipcards(w, data.cards);
+  else if (data.type === 'toggle') renderToggle(w, data);
+  else if (data.type === 'diagram') renderDiagram(w, data);
+  else if (data.type === 'quickcheck') renderQuickcheck(w, data);
+}
+/* ---------- /widget renderers ---------- */
+
 function resetChat() {
   history = [];
   chat.innerHTML = '';
@@ -156,6 +304,7 @@ form.addEventListener('submit', async (e) => {
     history.push({role: 'assistant', content: data.reply});
     thinking.remove();
     addMsg(data.reply, 'bot');
+    if (data.interactive) renderWidget(data.interactive);
   } catch (err) {
     history.pop();
     thinking.remove();
