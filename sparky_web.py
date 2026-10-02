@@ -255,7 +255,9 @@ INTERACTIVE_BANK = [
 
 
 def _trim_to_hook(text: str, max_sentences: int = 2) -> str:
-    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+    # Collapse punctuation bursts ("!!!!", "?!?!") so they don't count as sentence ends.
+    text = re.sub(r"([.!?])\1+", r"\1", text.strip())
+    sentences = re.split(r"(?<=[.!?])\s+", text)
     return " ".join(sentences[:max_sentences]).strip()
 
 
