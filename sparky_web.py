@@ -253,6 +253,31 @@ INTERACTIVE_BANK = [
     },
 ]
 
+# Microquiz bank - offered on the learner's 2nd or 3rd message. Correct answer = a gem.
+MICROQUIZ_BANK = [
+    {
+        "type": "microquiz",
+        "question": "You skip a $15 movie to work a shift that pays $60. What is the opportunity cost of working that shift?",
+        "options": ["$45 - the difference", "The movie experience you gave up", "$60 - what you earned"],
+        "answer": 1,
+        "feedback": "Opportunity cost is the value of what you gave up (the movie), not a dollar amount.",
+    },
+    {
+        "type": "microquiz",
+        "question": "You spend Sunday meal-prepping instead of seeing friends. What is the opportunity cost?",
+        "options": ["The money spent on groceries", "The time with friends you gave up", "The meals you made"],
+        "answer": 1,
+        "feedback": "The cost is the next best thing you gave up - the time with friends.",
+    },
+    {
+        "type": "microquiz",
+        "question": "Which of these is NOT part of an opportunity cost?",
+        "options": ["The value of the next best alternative", "Every alternative you didn't pick, added together", "What you sacrifice when you choose"],
+        "answer": 1,
+        "feedback": "Opportunity cost is only the NEXT BEST alternative - not every option combined.",
+    },
+]
+
 
 def _trim_to_hook(text: str, max_sentences: int = 2) -> str:
     # Collapse punctuation bursts ("!!!!", "?!?!") so they don't count as sentence ends.
@@ -266,6 +291,18 @@ def split_interactive(reply: str, messages: list):
     Two paths: the model tags its reply with [INTERACTIVE: type], or the reply
     is a long teaching moment and the server rolls the dice itself.
     Returns (clean_reply, interactive_or_None). The tag never reaches the learner."""
+    # Sanitize punctuation bursts ("!!!!") the model sometimes emits - they break
+    # the voice rules and the sentence splitter.
+    reply = re.sub(r"([.!?])\1+", r"\1", reply)
+
+    # Microquiz moment first: the learner's 2nd or 3rd exchange always gets a quiz
+    # with a gem reward. Count only real conversation turns (skip system messages).
+    convo = [m for m in messages if m.get("role") in ("user", "assistant")]
+    user_turns = sum(1 for m in convo if m.get("role") == "user")
+    if user_turns in (2, 3):
+        clean = re.sub(r"\s*\[INTERACTIVE:\s*\w+\]\s*", "", reply).strip()
+        return _trim_to_hook(clean), random.choice(MICROQUIZ_BANK)
+
     m = re.search(r"\[INTERACTIVE:\s*(\w+)\]", reply)
     if m:
         clean = re.sub(r"\s*\[INTERACTIVE:\s*\w+\]\s*", "", reply).strip()
